@@ -1,23 +1,13 @@
 import "./App.css";
 import { useState, useEffect } from "react";
 import { v4 as uuid } from "uuid";
-
+import InputForm from "./components/InputForm";
+import NoteList from "./components/NoteList";
 function App() {
-  const [note, setnote] = useState("");
+  const [note, setNote] = useState("");
   const [noteList, setNoteList] = useState([]);
   const [trueIsAdd, setTrueIsAdd] = useState(false);
-  const [idEdit, setIdEdit] = useState('');
-  useEffect(() => {
-    const savedData = localStorage.getItem('noteList');
-    if (savedData) {
-      console.log(savedData)
-      setNoteList(JSON.parse(savedData));
-    }
-  }, []);
-  
-
-
-  // const [idDelete , setId]=useState();
+  const [idEdit, setIdEdit] = useState("");
 
   // addNote
   const addNote = () => {
@@ -25,102 +15,78 @@ function App() {
     let uni = ids.slice(0, 8);
     let item = { id: uni, note: note };
     setNoteList([...noteList, item]);
-    setnote("");
+    setNote("");
     console.log(noteList);
+  };
+
+  // preperToEditNote
+  const preperToEditNote = (id) => {
+    console.log("false");
+    setTrueIsAdd(true);
+    const found = noteList.find((note) => note.id === id);
+    setNote(found.note);
+    setIdEdit(id);
+  };
+
+  // editNote
+  const handleEdit = (idEdit) => {
+    setTrueIsAdd(false);
+    const found = noteList.find((note) => note.id === idEdit);
+    found.note = note;
+    setNote("");
+    localStorage.setItem("noteList", JSON.stringify(noteList));
+    console.log(noteList)
+    
   };
 
   // dleteNote
   const dleteNote = (id) => {
-    const result = noteList.filter((note) => note.id !== id);
-    localStorage.setItem('noteList',JSON.stringify(noteList))
-    setNoteList(result);
-    console.log(result)
+    const updatedNoteList = noteList.filter((note) => note.id !== id);
+    localStorage.setItem("noteList", JSON.stringify(updatedNoteList));
+    setNoteList(updatedNoteList);
+    setTrueIsAdd(false);
+    // console.log(result)
   };
 
+  //save data to localStorage
+  useEffect(() => {
+    if (noteList.length) {
+      localStorage.setItem("noteList", JSON.stringify(noteList));
+    }
+  },[noteList]);
 
-  // preperToEditNote
-  const preperToEditNote = (id) => {
-      console.log('false');     
-       setTrueIsAdd(true);
-      console.log(trueIsAdd);
-  
-    
-    const found = noteList.find((note) => note.id === id);
-    setnote(found.note);
-    setIdEdit(id)
-    
- 
-  };
-
-
-  // editNote
-const handleEdit = (idEdit)=>{
-  setTrueIsAdd(false)
-  const found = noteList.find((note) => note.id === idEdit);
-  found.note=note
-  setnote("");
-}
-
-
-
-
-//save data to localStorage
-useEffect(()=>{
-  if (noteList.length) {
-    localStorage.setItem('noteList',JSON.stringify(noteList))
-  }
-},[noteList])
-
-
-
-
-
+  //lode data from localStorage
+  useEffect(() => {
+    const savedData = localStorage.getItem("noteList");
+    if (savedData) {
+      console.log(savedData);
+      setNoteList(JSON.parse(savedData));
+    }
+  }, []);
 
   return (
     <div className="App">
       <div className="contaner">
         <div className="outerBox">
-          <div id="myDIV" className="header">
-            <h2>My To Do List</h2>
-            <from>
-              <input
-                type="text"
-                id="myInput"
-                placeholder="Your Note..."
-                onChange={(e) => setnote(e.target.value)}
-                value={note}
-              />
+        
 
-              {trueIsAdd ? (
-                <button onClick={()=>{
-                  handleEdit(idEdit)
-                }} className="addBtn">
-                save
-              </button>
-              ) : (
-                
-                <button onClick={addNote} className="addBtn">
-                Add Note
-              </button>
-              )}
-            </from>
-          </div>
+          <InputForm
+            note={note}
+            setNote={setNote}
+            trueIsAdd={trueIsAdd}
+            handleEdit={handleEdit}
+            idEdit={idEdit}
+            addNote={addNote}
+          />
 
-          <ul id="myUL">
-            {noteList.map((i) => (
-              <li key={i.id}>
-                <span>{i.note}</span>
-                <div className="btnDiv">
-                  <span className="edit" onClick={() => preperToEditNote(i.id)}>
-                    Edit
-                  </span>
-                  <span className="close" onClick={() => dleteNote(i.id)}>
-                    ×
-                  </span>
-                </div>
-              </li>
-            ))}
-          </ul>
+
+          <NoteList
+            noteList={noteList}
+            preperToEditNote={preperToEditNote}
+            dleteNote={dleteNote}
+          />
+
+          
         </div>
       </div>
     </div>
